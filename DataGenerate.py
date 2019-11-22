@@ -57,6 +57,7 @@ def GenerateData(Mode,MotionIndex):
                 if ser.readable():
                     IMU=list(map(float,res.decode()[1:len(res)-1].split(',')[1:]))
                     if StateChecker==0 and IMU[0]==1:
+                        ser.read_all()
                         InitializedData=cp.copy(IMU[1:])
                         StateChecker=1
                     elif StateChecker==1 and IMU[0]==1:
@@ -87,9 +88,9 @@ def GenerateData(Mode,MotionIndex):
 
     elif Mode==2:
         print("Read Data Mode")
-        LoadData=np.load('./Data/Train1.npy',allow_pickle=True)
-        print(np.array(LoadData[0][1]))
-        print(len(np.array(LoadData)))
+        LoadData=np.load('./Data/300.npy',allow_pickle=True)
+        for i in range(len(LoadData)):
+            print(np.array(LoadData[i][1]))
 
 
     elif Mode==3:
