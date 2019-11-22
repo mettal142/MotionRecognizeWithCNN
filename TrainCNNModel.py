@@ -55,7 +55,7 @@ x=tf.placeholder(tf.float32,shape=[None,240])
 y=tf.placeholder(tf.float32,shape=[None,11])
 keep_prob=tf.placeholder(tf.float32)
 
-TrainData=np.load('./Data/300.npy',allow_pickle=True)
+TrainData=np.load('./Data/600.npy',allow_pickle=True)
 #np.random.shuffle(TrainData)
 
 bx=[]
@@ -67,7 +67,7 @@ StateChecker=0
 data=[]
 
 for i in range(len(TrainData)):
-    if i<=int(len(TrainData)*0.90):
+    if i<=int(len(TrainData)*0.9):
         bx.append(TrainData[i][0][:-240])
         by.append(TrainData[i][1])
     else:
@@ -76,16 +76,15 @@ for i in range(len(TrainData)):
 
 y_pred,logits=build_CNN_classifier(x)
 loss= tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits))
-train_step=tf.train.AdamOptimizer(1e-5).minimize(loss)
+train_step=tf.train.AdamOptimizer(1e-4).minimize(loss)
 currect_prediction = tf.equal(tf.argmax(y_pred,1),tf.argmax(y,1))
 accuracy=tf.reduce_mean(tf.cast(currect_prediction, tf.float32))
-
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    for i in range(200):
+    for i in range(500):
         train_accuracy = accuracy.eval(feed_dict = {x:bx,y:by,keep_prob:1.0})
         print("반복 : %d, 정확도 : %f"%(i,train_accuracy))
-        sess.run([train_step],feed_dict={x:bx,y:by,keep_prob:0.8})
+        sess.run([train_step],feed_dict={x:bx,y:by,keep_prob:0.7})
         if train_accuracy==1:
             break
     print("테스트 데이터 정확도 : %f"%accuracy.eval(feed_dict={x:tx, y:ty,keep_prob:1.0}))
@@ -94,6 +93,8 @@ with tf.Session() as sess:
 port='COM4',
 baudrate=115200,
 )
+    tf.train.Saver().save(sess,'./Model/my_test_model')
+
     while True:
 
         if ser.readable():

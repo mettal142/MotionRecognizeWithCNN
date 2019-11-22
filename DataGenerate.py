@@ -96,7 +96,7 @@ def GenerateData(Mode,MotionIndex):
     elif Mode==3:
         print("Combine Mode")
         savetemp=[]
-        Motion1=np.load('./Data/200.npy',allow_pickle=True)
+        Motion1=np.load('./Data/500.npy',allow_pickle=True)
         Motion2=np.load('./Data/Train3.npy',allow_pickle=True)
         #Motion3=np.load('CombinedMotionDataming45.npy',allow_pickle=True)
         savetemp.extend(Motion1) 
