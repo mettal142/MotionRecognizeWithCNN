@@ -33,7 +33,7 @@ def HyperSampling(data,Lable):
 def GenerateData(Mode,MotionIndex):
 
     ser = serial.Serial(
-    port='COM4',
+    port='COM8',
     baudrate=115200,
 )
 
