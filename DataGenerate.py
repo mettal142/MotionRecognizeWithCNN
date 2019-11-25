@@ -4,7 +4,7 @@ import copy as cp
 import serial
 
 
-Mode=3 #0:TrainData, 1:Test, 2:ReadData, 3:CombineData, 4:Dummy
+Mode=2 #0:TrainData, 1:Test, 2:ReadData, 3:CombineData, 4:Dummy
 
 MotionIndex=3
 
@@ -88,9 +88,11 @@ def GenerateData(Mode,MotionIndex):
 
     elif Mode==2:
         print("Read Data Mode")
-        LoadData=np.load('./Data/300.npy',allow_pickle=True)
+        LoadData=np.load('./Data/600.npy',allow_pickle=True)
         for i in range(len(LoadData)):
             print(np.array(LoadData[i][1]))
+        print(len(LoadData[0][0]))
+        print(len(LoadData[0][1]))
 
 
     elif Mode==3:
@@ -113,4 +115,4 @@ def GenerateData(Mode,MotionIndex):
         np.save("./Data/Dymmy_c",Motion1,True)
             
 
-#GenerateData(Mode,MotionIndex)
+GenerateData(Mode,MotionIndex)
