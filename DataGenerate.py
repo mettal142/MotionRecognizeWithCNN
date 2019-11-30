@@ -115,4 +115,4 @@ def GenerateData(Mode,MotionIndex):
         np.save("./Data/Dymmy_c",Motion1,True)
             
 
-GenerateData(Mode,MotionIndex)
+#GenerateData(Mode,MotionIndex)

@@ -1,10 +1,17 @@
 import tensorflow as tf
 import numpy as np
 import DataGenerate
-import serial
 import copy as cp
+import socket
+
 #from tensorflow.examples.tutorials.mnist import input_data
 #mnist = input_data.read_data_sets("/tmp/data/",one_hot= True)
+
+
+size = 1024
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('', 5050))
+s.listen(5)
 
 #cnn 모델 정의
 
@@ -90,10 +97,7 @@ with tf.Session() as sess:
         #    break
     print("테스트 데이터 정확도 : %f"%accuracy.eval(feed_dict={x:tx, y:ty,keep_prob:1.0}))
     #for i in range(len(ttx)):
-    ser = serial.Serial(
-port='COM8',
-baudrate=115200,
-)
+  
     tf.compat.v1.train.Saver().save(sess,'./Model/my_test_model')
    # Restore the graph
     saver = tf.compat.v1.train.import_meta_graph('./Model/my_test_model.meta')
@@ -111,13 +115,21 @@ baudrate=115200,
     with open('Graph/output_graph.pb', 'wb') as f:
       f.write(frozen_graph_def.SerializeToString())
 
-    while True:
+    
+    print ("is waiting")
 
-        if ser.readable():
-            res = ser.readline()
-        IMU=list(map(float,res.decode()[1:len(res)-1].split(',')[1:]))
+    client, address = s.accept()
+    print(s.getsockname())
+
+    print(str(address),"Connected")
+
+    
+    while 1:
+        d = client.recv(size)
+        if d:
+            d=d[:-1]
+            IMU=list(map(float,d.decode()[:len(d)-2].split(',')))
         if StateChecker==0 and IMU[0]==1:
-            ser.read_all()
             InitializedData=cp.copy(IMU[1:])
             StateChecker=1
         elif StateChecker==1 and IMU[0]==1:
@@ -125,7 +137,12 @@ baudrate=115200,
         elif StateChecker==1 and IMU[0]==0:
             ttx=[]
             ttx.append(DataGenerate.HyperSampling(np.array(data).reshape(-1,6),[])[0][:-240])
-            print("모션 정확도",max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),"모션 : ",np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1)
+            res=max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),"모션 : ",np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1
+            print("모션 정확도",res)
+            client.send(str(res).encode())
+            client.recv(size)
             StateChecker=0
             res=[]
             data=[]
+ 
+
