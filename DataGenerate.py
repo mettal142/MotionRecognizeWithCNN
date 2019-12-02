@@ -4,9 +4,10 @@ import copy as cp
 import serial
 
 
-Mode=2 #0:TrainData, 1:Test, 2:ReadData, 3:CombineData, 4:Dummy
+Mode=3 #0:TrainData, 1:Test, 2:ReadData, 3:CombineData, 4:Dummy
 
 MotionIndex=3
+
 
 
 
@@ -55,7 +56,11 @@ def GenerateData(Mode,MotionIndex):
             if Mode==0:
                 FileName="Train"+str(MotionIndex)
                 if ser.readable():
-                    IMU=list(map(float,res.decode()[1:len(res)-1].split(',')[1:]))
+                    try:
+                        IMU=list(map(float,res.decode()[1:len(res)-1].split(',')[1:]))
+                    except:
+                        ser.read_all()
+                        continue
                     if StateChecker==0 and IMU[0]==1:
                         ser.read_all()
                         InitializedData=cp.copy(IMU[1:])
@@ -63,6 +68,10 @@ def GenerateData(Mode,MotionIndex):
                     elif StateChecker==1 and IMU[0]==1:
                         data.extend(cp.copy(np.array(IMU[1:])-np.array(InitializedData)))
                     elif StateChecker==1 and IMU[0]==0:
+                        if len(data)<=60:
+                            data.clear()
+                            StateChecker=0
+                            continue
                         save.append(HyperSampling(np.array(data).reshape(-1,6),Lable[MotionIndex-1]))
                         data.clear()
                         print(Iterator)
@@ -98,12 +107,13 @@ def GenerateData(Mode,MotionIndex):
     elif Mode==3:
         print("Combine Mode")
         savetemp=[]
-        Motion1=np.load('./Data/500.npy',allow_pickle=True)
-        Motion2=np.load('./Data/Train3.npy',allow_pickle=True)
+        Motion1=np.load('./Data/300.npy',allow_pickle=True)
+        Motion2=np.load('./Data/300_.npy',allow_pickle=True)
+        #Motion3=np.load('./Data/Train3.npy',allow_pickle=True)
         #Motion3=np.load('CombinedMotionDataming45.npy',allow_pickle=True)
         savetemp.extend(Motion1) 
         savetemp.extend(Motion2) 
-        #savetemp.extend(Motion3)
+        #savetemp.extend(Motion3) 
         np.random.shuffle(savetemp)
         np.save("./Data/"+str(len(savetemp)),savetemp,True)
         print(len(savetemp),"Saved")

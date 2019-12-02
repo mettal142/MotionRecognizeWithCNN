@@ -33,10 +33,17 @@ try:
 
     
     while 1:
-        d = client.recv(size)
-        if d:
-            #print (list(map(float,d.decode()[:len(d)-1].split(','))))
-            print (d[:-1])
+        a=0
+        for i in range(30000000):
+            a+=1
+        #d = client.recv(size)
+        #if d:
+        #    print (list(map(float,d.decode()[:len(d)-1].split(','))))
+        #client.send("recieved".encode())
+        client.send('2'.encode())
+        print('send')
+
+
  
 except:
     print("closing socket")

@@ -128,7 +128,11 @@ with tf.Session() as sess:
         d = client.recv(size)
         if d:
             d=d[:-1]
-            IMU=list(map(float,d.decode()[:len(d)-2].split(',')))
+            try:
+                IMU=list(map(float,d.decode()[:len(d)-2].split(',')))
+            except:
+                client.recv(size)
+                continue
         if StateChecker==0 and IMU[0]==1:
             InitializedData=cp.copy(IMU[1:])
             StateChecker=1
@@ -137,9 +141,9 @@ with tf.Session() as sess:
         elif StateChecker==1 and IMU[0]==0:
             ttx=[]
             ttx.append(DataGenerate.HyperSampling(np.array(data).reshape(-1,6),[])[0][:-240])
-            res=max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),"모션 : ",np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1
-            print("모션 정확도",res)
-            client.send(str(res).encode())
+            res=max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1
+            print(res[1])
+            client.send(str(res[1]).encode())
             client.recv(size)
             StateChecker=0
             res=[]
