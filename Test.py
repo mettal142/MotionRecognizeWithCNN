@@ -4,7 +4,7 @@ import DataGenerate
 import copy as cp
 import socket
 
-#from tensorflow.examples.tutorials.mnist import input_data
+#from tensorflow.examples.tutorials.mnist import input_data 10
 #mnist = input_data.read_data_sets("/tmp/data/",one_hot= True)
 
 
@@ -28,7 +28,7 @@ def build_CNN_classifier(x):
     b_conv2= tf.Variable(tf.constant(0.1,shape=[64]))
     h_conv2= tf.nn.relu(tf.nn.conv2d(h_pool1,W_conv2,strides=[1,1,1,1],padding='SAME')+b_conv2)
 
-    h_pool2=tf.nn.max_pool(h_conv2,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+    h_pool2=tf.nn.max_pool(h_conv2,ksize=[1,2,2,1],strides=[1,2,2,1],padding='SAME')   
 
     W_conv3 = tf.Variable(tf.truncated_normal(shape=[3,3,64,128],stddev = 5e-2))
     b_conv3= tf.Variable(tf.constant(0.1,shape=[128]))
@@ -95,42 +95,35 @@ with tf.Session() as sess:
    
     print("테스트 데이터 정확도 : %f"%accuracy.eval(feed_dict={x:tx, y:ty,keep_prob:1.0}))
       
+        
+    print ("is waiting")
 
+    client, address = s.accept()
+    print(s.getsockname())
+
+    print(str(address),"Connected")
 
     while 1:
-        try:
-            print ("is waiting")
-            client, address = s.accept()
-            print(s.getsockname())
-            print(str(address),"Connected")
-            while 1:
-                d = client.recv(size)
-                if d:
-                    d=d[:-1]
-                    try:
-                        IMU=list(map(float,d.decode()[:len(d)-2].split(',')))
-                    except:
-                        client.recv(size)
-                        continue
-                if StateChecker==0 and IMU[0]==1:
-                    InitializedData=cp.copy(IMU[1:])
-                    StateChecker=1
-                elif StateChecker==1 and IMU[0]==1:
-                    data.extend(cp.copy(np.array(IMU[1:])-np.array(InitializedData)))
-                elif StateChecker==1 and IMU[0]==0:
-                    ttx=[]
-                    ttx.append(DataGenerate.HyperSampling(np.array(data).reshape(-1,6),[])[0][:-240])
-                    res=max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1
-                    print(res[1])
-                    client.send(str(res[1]).encode())
-                    client.recv(size)
-                    StateChecker=0
-                    res=[]
-                    data=[]
-        except:
-            client.recv(size)
+        d = client.recv(size)
+        if d:
+            d=d[:-1]
+            try:
+                IMU=list(map(float,d.decode()[:len(d)-2].split(',')))
+            except:
+                client.recv(size)
+                continue
+        if StateChecker==0 and IMU[0]==1:
+            InitializedData=cp.copy(IMU[1:])
+            StateChecker=1
+        elif StateChecker==1 and IMU[0]==1:
+            data.extend(cp.copy(np.array(IMU[1:])-np.array(InitializedData)))
+        elif StateChecker==1 and IMU[0]==0:
             ttx=[]
-            res=[]
+            ttx.append(DataGenerate.HyperSampling(np.array(data).reshape(-1,6),[])[0][:-240])
+            res=max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]),np.array(np.where(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0]==max(y_pred.eval(feed_dict={x:ttx,keep_prob:1.0})[0])))[0][0]+1
+            print(res[1])
+            client.send(str(res[1]).encode())
+            client.recv(size)
             StateChecker=0
+            res=[]
             data=[]
-            continue

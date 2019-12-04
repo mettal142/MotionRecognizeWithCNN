@@ -40,7 +40,7 @@ try:
         #if d:
         #    print (list(map(float,d.decode()[:len(d)-1].split(','))))
         #client.send("recieved".encode())
-        client.send('2'.encode())
+        client.send('1'.encode())
         print('send')
 
 
